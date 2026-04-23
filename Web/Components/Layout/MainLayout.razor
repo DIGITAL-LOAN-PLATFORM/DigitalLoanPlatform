@@ -1,0 +1,160 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<style>
+    /* Ensure the browser takes up the full viewport */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    /* Main layout wrapper to ensure 100% height */
+    .mud-layout {
+        min-height: 100vh;
+        display: flex;
+    }
+
+    /* Remove border radius from the drawer and force 100% height */
+    .mud-drawer {
+        height: 100vh !important;
+        border-radius: 0 !important; /* Removes the rounded corners on menu side */
+    }
+
+    /* Style for the content area to match drawer height exactly */
+    .mud-main-content {
+        min-height: 100vh;
+        padding-top: 0 !important; /* Removes space above */
+        @* display: flex; *@
+        flex: 1;
+        overflow-x: auto; /* This allows the content area to scroll if the table is too wide */
+        max-width: 100%;
+        @* flex-direction: column; *@
+    }
+
+    /* If you use a MudPaper inside @Body, make sure it stretches */
+    .content-fill {
+        height: 100%;
+        min-height: 100vh;
+        border-radius: 0 !important;
+    }
+
+    /* Styling for the column headers */
+    .mud-table-head .mud-table-cell {
+        color: #A3AED0 !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase;
+        font-weight: 700 !important;
+    }
+
+    /* The blue highlight for active menu item */
+    .mud-nav-link.active {
+        background-color: #4318FF !important;
+        color: #FFFFFF !important;
+        font-weight: 900;
+        font-size: 1.1rem !important;
+    }
+    .mud-nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: #ffffff !important;
+    }
+    .mud-nav-link .mud-nav-link-icon {
+        font-size: 1.4rem !important; 
+        color: #ffffff !important;
+    }
+    .mud-nav-link {
+        font-weight: 700 !important;      /* Makes it bold by default */
+        font-size: 1.05rem !important;    /* Increases the text size */
+        color: #ffffff !important;        /* Keeps the greyish color from your theme */
+    }
+    
+</style>
+
+<MudLayout>
+    @* AppBar - Kept transparent, but removed from the flow to save space if needed *@
+    <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Search" Color="Color.Default" />
+        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+        <MudIconButton
+            Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+            Color="Color.Inherit"
+            OnClick="ToggleTheme" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" 
+               Variant="DrawerVariant.Mini" 
+               OpenMiniOnHover="false" 
+               Elevation="0" 
+               Class="py-4"
+               Style="background-color: #111C44;">
+        
+        @* Top Logo Area *@
+        <div class="d-flex align-center justify-center mb-10 mt-2">
+            <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Large" />
+            @if (_drawerOpen)
+            {
+                <div class="d-flex flex-column ml-3">
+                    <MudText Typo="Typo.h6" Style="color: white; font-weight: 800; line-height: 1.1; font-family: 'Century Gothic';">
+                        DIGITAL LOAN
+                    </MudText>
+                    <MudText Style="color: #A3AED0; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">
+                        PLATFORM
+                    </MudText>
+                </div>
+            }
+        </div>
+
+        <NavMenu IsMini="!_drawerOpen" />
+    </MudDrawer>
+
+    @* Main Content - No padding (pa-0) to fill height and width completely *@
+    <MudMainContent Class="pa-0">
+        <MudPaper Elevation="0" Class="content-fill pa-8" Style="@( _isDarkMode ? "background-color: #0B1139;" : "background-color: #F4F7FE;")">
+            @Body
+        </MudPaper>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+    bool _isDarkMode = false;
+  
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4318FF",
+            Background = "#F4F7FE",
+            DrawerBackground = "#111C44",
+            DrawerText = "#A3AED0",
+            Surface = "#FFFFFF",
+            TextPrimary = "#1B2559",
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#6366F1",
+            Background = "#0B1139", 
+            Surface = "#111C44",    
+            AppbarBackground = "#0B1139",
+            DrawerBackground = "#111C44",
+            TextPrimary = "#FFFFFF",
+            TextSecondary = "#A3AED0",
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+    }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    void ToggleTheme() => _isDarkMode = !_isDarkMode;
+}
