@@ -1,0 +1,63 @@
+@page "/Payments"
+@using Domain.Entities
+@using Application.Services.Payments   
+@using MudBlazor
+@inject IPaymentService PaymentService
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Primary" Size="Size.Large" />
+        <MudText Typo="Typo.h5" Style="font-weight: 800;">Transaction History</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToCreatePayment" 
+                   StartIcon="@Icons.Material.Filled.Add" Class="rounded-lg">New Payment</MudButton>
+    </MudStack>
+
+    <MudDataGrid T="Payment" Items="@_payments" Elevation="0" Class="rounded-xl border shadow-sm">
+        <Columns>
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn Title="Borrower">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                        @context.Item.Disbursement?.LoanApplication?.Borrower?.FirstName @context.Item.Disbursement?.LoanApplication?.Borrower?.LastName
+                    </MudText>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Amount" Title="Amount Paid" Format="n" />
+            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="MMM dd, yyyy" />
+            <TemplateColumn Title="Account">
+                <CellTemplate>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info">
+                        @context.Item.Account?.Name
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    <MudChip T="string" Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                             Size="Size.Small" Variant="Variant.Filled">
+                        @(context.Item.IsActive ? "COMPLETED" : "VOID")
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    private List<Payment> _payments = new();
+
+    protected override async Task OnInitializedAsync() => await LoadPayments();
+
+    private async Task LoadPayments() {
+        _payments = await PaymentService.GetAllPaymentsAsync();
+        StateHasChanged();
+    }
+
+    private async Task GoToCreatePayment() {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<CreatePayment>("Record Payment", options);
+        if (!(await dialog.Result).Canceled) await LoadPayments();
+    }
+}
